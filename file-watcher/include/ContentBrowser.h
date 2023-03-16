@@ -2,6 +2,7 @@
 
 #include "ContentBrowserDrawer.h"
 #include "DirectoryTree.h"
+#include "FileSystemWatcher.h"
 
 #include <cstdint>
 #include <filesystem>
@@ -9,48 +10,33 @@
 #include <mutex>
 #include <thread>
 
-class ContentBrowser
+namespace fs
 {
-public:
-
-	enum class UpdateFreq
+	class ContentBrowser
 	{
-		_30_FPS,
-		_60_FPS
+	public:
+
+		ContentBrowser();
+		~ContentBrowser();
+
+		void Tick();
+		void DrawGUI();
+
+		void SetAssetsDirectory(const std::filesystem::path& assetsRootPath);
+		void ClearAssetsDirectory();
+
+	private:
+
+		void InitializeContentBrowser();
+
+		std::filesystem::path currentPath;
+		std::filesystem::path rootPath;
+
+		std::unique_ptr<ContentBrowserDrawer> contentBrowserDrawer;
+		std::unique_ptr<DirectoryTree> directoryTree;
+
+		std::unique_ptr<FileSystemWatcher> fileWatcher;
+
+		bool anyChanges{ false };
 	};
-
-	ContentBrowser(int64_t customFreqMs);
-	ContentBrowser(UpdateFreq freq);
-	~ContentBrowser();
-
-	void StartScanningAssetsRootPath();
-	void StopScanningAssetsRootPath();
-
-	void ProcessDirectoryTree(IDirectoryTreeProcessor* processor);
-
-	void SetAssetsRootPath(const std::filesystem::path& assetsRootPath);
-
-private:
-
-	void InitializeContentBrowser();
-
-	void SetTimerMs(UpdateFreq freq);
-
-	void ScanMainLoop();
-
-	void WaitForFinish();
-	void Detach();
-
-	std::filesystem::path currentPath;
-	std::filesystem::path rootPath;
-
-	std::unique_ptr<ContentBrowserDrawer> contentBrowserDrawer;
-	std::unique_ptr<DirectoryTree> directoryTree;
-
-	std::thread exec_thread;
-
-	int64_t timerMs{ 0 };
-
-	bool scanning{ false };
-	bool updatingTree{ false };
-};
+}

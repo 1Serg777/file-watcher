@@ -6,34 +6,36 @@
 #include <mutex>
 #include <unordered_map>
 
-class IDirectoryTreeProcessor
+namespace fs
 {
-public:
-	virtual void ProcessDirectoryTree(std::shared_ptr<Directory> root) = 0;
-};
+	class IDirectoryTreeProcessor
+	{
+	public:
+		virtual void ProcessDirectoryTree(std::shared_ptr<Directory> root) = 0;
+	};
 
-class DirectoryTree
-{
-public:
+	class DirectoryTree
+	{
+	public:
 
-	void BuildRootDirectoryTree(const std::filesystem::path& rootDirPath);
-	void Clear();
+		void BuildTree(const std::filesystem::path& rootDirPath);
+		void ClearTree();
 
-	void ProcessDirectoryTree(IDirectoryTreeProcessor* processor);
+		void ProcessDirectoryTree(IDirectoryTreeProcessor* processor);
 
-	// Return a default constructed shared pointer if the directory doesn't exist
-	std::shared_ptr<Directory> GetDirectory(const std::filesystem::path& dirPath);
+		// Return a default constructed 'std::shared_ptr<Directory>' instance if the directory doesn't exist
+		std::shared_ptr<Directory> GetDirectory(const std::filesystem::path& dirPath);
 
-private:
+	private:
 
-	void BuildDirectoryTree(std::shared_ptr<Directory> dir);
+		std::shared_ptr<Directory> BuildTreeImpl(const std::filesystem::path& dirPath);
 
-	std::unordered_map<
-		std::filesystem::path,
-		std::shared_ptr<Directory>> directories;
+		std::unordered_map<
+			std::filesystem::path,
+			std::shared_ptr<Directory>> directories;
 
-	// "[Absolute_path]/Assets/"
-	std::shared_ptr<Directory> rootDir;
+		std::shared_ptr<Directory> rootDir;
 
-	std::mutex dir_tree_mutex;
-};
+		std::mutex dir_tree_mutex;
+	};
+}

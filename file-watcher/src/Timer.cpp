@@ -79,7 +79,7 @@ void Timer::MainLoop()
 		{
 			auto endTimePoint = high_resolution_clock::now();
 
-			// This workss
+			// This works
 			/*
 				auto passedTimePoint = endTimePoint - startTimePoint;
 				currentTimePoint += passedTimePoint;

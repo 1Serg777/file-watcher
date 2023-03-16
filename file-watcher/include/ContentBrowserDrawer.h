@@ -2,16 +2,19 @@
 
 #include "DirectoryTree.h"
 
-class ContentBrowserDrawer : public IDirectoryTreeProcessor
+namespace fs
 {
-public:
+	class ContentBrowserDrawer : public IDirectoryTreeProcessor
+	{
+	public:
 
-	void ProcessDirectoryTree(std::shared_ptr<Directory> root) override;
+		void ProcessDirectoryTree(std::shared_ptr<Directory> root) override;
 
-private:
+	private:
 
-	void ClearConsole();
+		void ClearConsole();
 
-	void DrawDirectory(std::shared_ptr<Directory> dir, int nestLevel);
-	void TabulateEntry(int nestLevel);
-};
+		void DrawDirectory(std::shared_ptr<Directory> dir, int nestLevel);
+		void TabulateEntry(int nestLevel);
+	};
+}

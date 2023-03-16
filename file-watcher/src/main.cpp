@@ -1,26 +1,33 @@
 #include <cstdlib>
+#include <iostream>
 
 #include "../include/ContentBrowser.h"
-#include "../include/ContentBrowserDrawer.h"
+
+using namespace fs;
+
+void PrintUsage();
 
 int main(int argc, char* argv[])
 {
-	std::filesystem::path assetsRootPath = std::filesystem::path{ argv[0] }.remove_filename();
-	assetsRootPath = assetsRootPath / "Assets";
+	if (argc != 2)
+		PrintUsage();
 
-	ContentBrowser contentBrowser{ ContentBrowser::UpdateFreq::_30_FPS };
-	// ContentBrowser contentBrowser{ ContentBrowser::UpdateFreq::_60_FPS };
+	std::filesystem::path assetsRootPath = std::filesystem::path{ argv[1] };
 
-	// ContentBrowser contentBrowser{ 1000 };
-
-	contentBrowser.SetAssetsRootPath(assetsRootPath);
-	contentBrowser.StartScanningAssetsRootPath();
-
-	// ContentBrowserDrawer contentBrowserDrawer{};
+	ContentBrowser contentBrowser{};
+	contentBrowser.SetAssetsDirectory(assetsRootPath);
 
 	while (true)
 	{
-		// contentBrowser.ProcessDirectoryTree(&contentBrowserDrawer);
+		contentBrowser.DrawGUI();
+		contentBrowser.Tick();
 	}
+
 	return EXIT_SUCCESS;
+}
+
+void PrintUsage()
+{
+	std::cout << "Usage: file-watcher [WATCH_PATH]\n";
+	std::cout << "Where [WATCH_PATH] is a path watched for file events\n";
 }
