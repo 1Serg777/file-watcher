@@ -25,6 +25,8 @@ namespace fs
 
 	constexpr std::string_view shader_ext{ ".shader" };
 
+	constexpr std::string_view txt_doc_ext{ ".txt" };
+
 	// Asset Type enumeration
 
 	std::unordered_map<std::string_view, AssetType> file_exts_to_asset_type_map
@@ -49,7 +51,9 @@ namespace fs
 		{ vert_ext, AssetType::SHADER },
 		*/
 
-		{ shader_ext, AssetType::SHADER }
+		{ shader_ext, AssetType::SHADER },
+
+		{ txt_doc_ext, AssetType::TEXT_DOC }
 	};
 
 	// Comparators

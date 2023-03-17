@@ -2,30 +2,35 @@
 
 namespace fs
 {
-	void DirectoryTree::BuildTree(const std::filesystem::path& rootDirPath)
+	void DirectoryTree::BuildRootTree(const std::filesystem::path& rootDirPath)
 	{
-		std::lock_guard mutex_guard{ dir_tree_mutex };
-		rootDir = BuildTreeImpl(rootDirPath);
+		rootDir = BuildTree(rootDirPath);
 	}
+	std::shared_ptr<Directory> DirectoryTree::BuildSubTree(const std::filesystem::path& dirPath)
+	{
+		std::filesystem::path parentDirPath = dirPath.parent_path();
+		std::shared_ptr<Directory> parentDir = GetDirectory(parentDirPath);
+		if (!parentDir)
+			return std::shared_ptr<Directory>{};
+
+		std::shared_ptr<Directory> subTree = BuildTree(dirPath);
+		AddDirectoryToDirectory(parentDir, subTree);
+		return subTree;
+	}
+	
 	void DirectoryTree::ClearTree()
 	{
-		std::lock_guard mutex_guard{ dir_tree_mutex };
-
 		rootDir.reset();
 	}
 
 	void DirectoryTree::ProcessDirectoryTree(IDirectoryTreeProcessor* processor)
 	{
-		std::lock_guard mutex_guard{ dir_tree_mutex };
-
 		if (rootDir)
 			processor->ProcessDirectoryTree(rootDir);
 	}
 
 	std::shared_ptr<Directory> DirectoryTree::GetDirectory(const std::filesystem::path& dirPath)
 	{
-		std::lock_guard mutex_guard{ dir_tree_mutex };
-
 		auto find = directories.find(dirPath);
 		if (find == directories.end())
 			return std::shared_ptr<Directory>{};
@@ -33,7 +38,7 @@ namespace fs
 		return find->second;
 	}
 
-	std::shared_ptr<Directory> DirectoryTree::BuildTreeImpl(const std::filesystem::path& dirPath)
+	std::shared_ptr<Directory> DirectoryTree::BuildTree(const std::filesystem::path& dirPath)
 	{
 		std::shared_ptr<Directory> dir = std::make_shared<Directory>(dirPath);
 		directories.insert({ dirPath, dir });
@@ -48,7 +53,7 @@ namespace fs
 			}
 			if (entry.is_directory())
 			{
-				std::shared_ptr<Directory> dirEntry = BuildTreeImpl(entry.path());
+				std::shared_ptr<Directory> dirEntry = BuildTree(entry.path());
 				AddDirectoryToDirectory(dir, dirEntry);
 			}
 		}

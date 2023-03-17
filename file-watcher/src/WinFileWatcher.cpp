@@ -107,7 +107,7 @@ namespace fs
         ClearWindowsSpecificObjects();
         InitializeWindowsSpecificObjects();
 
-        _tprintf(TEXT("Watching directory (%s) for notifications...\n"), watchPath.c_str());
+        // _tprintf(TEXT("Watching directory (%s) for notifications...\n"), watchPath.c_str());
 
         while (TRUE)
         {

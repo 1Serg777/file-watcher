@@ -29,6 +29,13 @@ namespace fs
 
 		void InitializeContentBrowser();
 
+		void ProcessFileEvent(const FileEvent& fileEvent) const;
+		void ProcessFileAddedEvent(const FileEvent& fileEvent) const;
+		void ProcessFileRemovedEvent(const FileEvent& fileEvent) const;
+		void ProcessFileMovedEvent(const FileEvent& fileEvent) const;
+		void ProcessFileModifiedEvent(const FileEvent& fileEvent) const;
+		void ProcessFileRenamedEvent(const FileEvent& fileEvent) const;
+
 		std::filesystem::path currentPath;
 		std::filesystem::path rootPath;
 
