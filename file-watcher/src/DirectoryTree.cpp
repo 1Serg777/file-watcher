@@ -145,18 +145,48 @@ namespace fs
 		std::shared_ptr<Directory> oldPathParentDir = GetDirectory(oldPathParentPath);
 		std::shared_ptr<Directory> newPathParentDir = GetDirectory(newPathParentPath);
 
-		assert(oldPathParentDir && newPathParentDir && "Can't remove a file from a directory that doesn't exist");
+		assert(oldPathParentDir && newPathParentDir && "The old or new directory doesn't exist");
 
 		std::shared_ptr<File> fileToMove = oldPathParentDir->GetFile(oldPath.filename().generic_string());
 		
-		assert(fileToMove && "Cannot move a file that doesn't exist");
+		assert(fileToMove && "Can't move a file that doesn't exist");
 
 		oldPathParentDir->DeleteFile(fileToMove);
 		Directory::AddFileToDirectory(newPathParentDir, fileToMove);
 	}
 	void DirectoryTree::MoveDirectory(const std::filesystem::path& oldPath, const std::filesystem::path& newPath)
 	{
+		std::filesystem::path oldPathParentPath = oldPath.parent_path();
+		std::filesystem::path newPathParentPath = newPath.parent_path();
 
+		std::shared_ptr<Directory> oldPathParentDir = GetDirectory(oldPathParentPath);
+		std::shared_ptr<Directory> newPathParentDir = GetDirectory(newPathParentPath);
+
+		assert(oldPathParentDir && newPathParentDir && "The old or new directory doesn't exist");
+
+		std::shared_ptr<Directory> directoryToMove = oldPathParentDir->GetDirectory(oldPath.filename().generic_string());
+
+		assert(directoryToMove && "Cannot move a directory that doesn't exist");
+
+		// First, we have to resolve connections of the directorie's entities
+		// with their respective old paths. So, basically we have to assing
+		// new keys to the entities inside the directory being moved
+
+		// Yeah, naming... Hope I can find better wording here...
+		std::filesystem::path relPathToMovedDir = oldPath.filename();
+		ResolveMovedDirectoryMapLinks(newPathParentPath, relPathToMovedDir, directoryToMove);
+
+		oldPathParentDir->DeleteDirectory(directoryToMove);
+		Directory::AddDirectoryToDirectory(newPathParentDir, directoryToMove);
+	}
+
+	void DirectoryTree::RenameFile(const std::filesystem::path& oldPath, const std::filesystem::path& newPath)
+	{
+		// TODO
+	}
+	void DirectoryTree::RenameDirectory(const std::filesystem::path& oldPath, const std::filesystem::path& newPath)
+	{
+		// TODO
 	}
 
 	void DirectoryTree::ProcessDirectoryTree(DirectoryTreeProcessor* processor)
@@ -243,5 +273,48 @@ namespace fs
 		}
 
 		return parentDir;
+	}
+
+	void DirectoryTree::ResolveMovedDirectoryMapLinks(
+		const std::filesystem::path& whereDirMoved,
+		const std::filesystem::path& relPathToMovedDir,
+		std::shared_ptr<Directory> relPathDir)
+	{
+		std::filesystem::path newKeyPath = whereDirMoved / relPathToMovedDir;
+
+		auto search = directories.find(relPathDir->GetPath());
+		assert(search != directories.end() && "Can't find the directory with the old key");
+		directories.erase(search);
+
+		directories.insert({ newKeyPath, relPathDir });
+
+		for (auto& dir : relPathDir->GetDirectories())
+		{
+			/*
+			std::filesystem::path dirName = dir->GetPath().filename();
+			std::filesystem::path newKeyPath = whereDirMoved / relPathToMovedDir / dirName;
+
+			// Get rid of the old link
+
+			auto search = directories.find(dir->GetPath());
+			assert(search != directories.end() && "Can't find the directory with the old key");
+			std::shared_ptr<Directory> dirToAssignNewKeyTo = search->second;
+			directories.erase(search);
+
+			// And set the new one
+
+			directories.insert({ newKeyPath, dirToAssignNewKeyTo });
+
+			// Make a recursive call
+
+			ResolveMovedDirectoryMapLinks(whereDirMoved, relPathToMovedDir / dirName, dirToAssignNewKeyTo);
+			*/
+
+			auto search = directories.find(dir->GetPath());
+			assert(search != directories.end() && "Can't find the directory currently being iterated over in the map");
+			std::shared_ptr<Directory> newRelPathDir = search->second;
+
+			ResolveMovedDirectoryMapLinks(whereDirMoved, relPathToMovedDir / dir->GetPath().filename(), newRelPathDir);
+		}
 	}
 }

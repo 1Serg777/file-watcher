@@ -49,6 +49,9 @@ namespace fs
 		void MoveFile(const std::filesystem::path& oldPath, const std::filesystem::path& newPath);
 		void MoveDirectory(const std::filesystem::path& oldPath, const std::filesystem::path& newPath);
 
+		void RenameFile(const std::filesystem::path& oldPath, const std::filesystem::path& newPath);
+		void RenameDirectory(const std::filesystem::path& oldPath, const std::filesystem::path& newPath);
+
 		// This is dangerous because we can't know what this object is going to do
 		// with our root directory. It can store it, traverse its subderectoires and/or store them as well.
 		// So many things that could potentially break our protection of the data that the mutex provides us with.
@@ -68,6 +71,12 @@ namespace fs
 		void NotifyFileRemoved(std::shared_ptr<File> file);
 
 		std::shared_ptr<Directory> BuildTree(const std::filesystem::path& dirPath);
+
+		// Change 'old path' to 'new path' links
+		void ResolveMovedDirectoryMapLinks(
+			const std::filesystem::path& whereDirMoved,
+			const std::filesystem::path& relPathToMovedDir,
+			std::shared_ptr<Directory> relPathDir);
 
 		std::unordered_map<
 			std::filesystem::path,
