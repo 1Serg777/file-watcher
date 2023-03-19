@@ -3,6 +3,9 @@
 #include <cassert>
 #include <chrono>
 
+#undef DeleteFile
+#undef RemoveDirectory
+
 using namespace std::chrono;
 
 namespace fs
@@ -48,24 +51,44 @@ namespace fs
 	{
 		ClearAssetsDirectory();
 		
-		rootPath = assetsRootPath;
-		currentPath = rootPath;
+		absRootPath = assetsRootPath;
+		rootDirAbsParentPath = absRootPath.parent_path();
+		relCurrentPath = absRootPath.filename();
 
-		directoryTree->BuildRootTree(rootPath);
+		directoryTree->BuildRootTree(absRootPath);
 		anyChanges = true;
 
 		fileWatcher->StartWatching(assetsRootPath);
 	}
 	void ContentBrowser::ClearAssetsDirectory()
 	{
-		if (!rootPath.empty())
+		if (!absRootPath.empty())
 		{
 			fileWatcher->StopWatching();
 			directoryTree->ClearTree();
 
-			currentPath.clear();
-			rootPath.clear();
+			relCurrentPath.clear();
+			absRootPath.clear();
+			rootDirAbsParentPath.clear();
 		}
+	}
+
+	void ContentBrowser::OnDirectoryAdded(std::shared_ptr<Directory> dir)
+	{
+		// TODO?
+	}
+	void ContentBrowser::OnDirectoryRemoved(std::shared_ptr<Directory> dir)
+	{
+		// TODO?
+	}
+
+	void ContentBrowser::OnFileAdded(std::shared_ptr<File> file)
+	{
+		// ADD ASSETS?
+	}
+	void ContentBrowser::OnFileRemoved(std::shared_ptr<File> file)
+	{
+		// REMOVE ASSETS?
 	}
 
 	void ContentBrowser::InitializeContentBrowser()
@@ -76,7 +99,7 @@ namespace fs
 		fileWatcher = std::make_unique<FileSystemWatcher>();
 	}
 
-	void ContentBrowser::ProcessFileEvent(const FileEvent& fileEvent) const
+	void ContentBrowser::ProcessFileEvent(const FileEvent& fileEvent)
 	{
 		switch (fileEvent.type)
 		{
@@ -92,17 +115,20 @@ namespace fs
 			break;
 			case FileEventType::MOVED:
 			{
-				ProcessFileMovedEvent(fileEvent);
+				// TODO
+				// ProcessFileMovedEvent(fileEvent);
 			}
 			break;
 			case FileEventType::MODIFIED:
 			{
-				ProcessFileModifiedEvent(fileEvent);
+				// TODO
+				// ProcessFileModifiedEvent(fileEvent);
 			}
 			break;
 			case FileEventType::RENAMED:
 			{
-				ProcessFileRenamedEvent(fileEvent);
+				// TODO
+				// ProcessFileRenamedEvent(fileEvent);
 			}
 			break;
 			default:
@@ -112,52 +138,39 @@ namespace fs
 			break;
 		}
 	}
-	void ContentBrowser::ProcessFileAddedEvent(const FileEvent& fileEvent)  const
+	void ContentBrowser::ProcessFileAddedEvent(const FileEvent& fileEvent) 
 	{
-		std::filesystem::path addedDirEntityAbsPath = rootPath / fileEvent.newPath;
-		std::filesystem::path parentDirAbsPath = addedDirEntityAbsPath.parent_path();
-
-		std::shared_ptr<Directory> parentDir = directoryTree->GetDirectory(parentDirAbsPath);
-
-		assert(parentDir && "Can't add an entity into a directory that doesn't exist");
-
-		if (std::filesystem::is_directory(addedDirEntityAbsPath))
+		std::filesystem::path rootPathName = absRootPath.filename();
+		if (fileEvent.newPath.has_extension())
 		{
-			if (parentDir->DirectoryExists(addedDirEntityAbsPath.filename().generic_string()))
-				return;
-
-			std::shared_ptr<Directory> newSubTree = directoryTree->BuildSubTree(addedDirEntityAbsPath);
-			assert(newSubTree && "Couldn't add a subtree to the root tree");
-		}
-		else if (std::filesystem::is_regular_file(addedDirEntityAbsPath))
-		{
-			if (parentDir->FileExists(addedDirEntityAbsPath.filename().generic_string()))
-				return;
-
-			std::shared_ptr<File> file = std::make_shared<File>(
-				addedDirEntityAbsPath,
-				DetectFileAssetType(addedDirEntityAbsPath.extension().generic_string()));
-
-			AddFileToDirectory(parentDir, file);
+			directoryTree->AddNewFile(rootPathName / fileEvent.newPath);
 		}
 		else
 		{
-			assert(false && "Unexpected directory entity was added");
+			directoryTree->AddNewDirectory(rootPathName / fileEvent.newPath);
 		}
 	}
-	void ContentBrowser::ProcessFileRemovedEvent(const FileEvent& fileEvent) const
+	void ContentBrowser::ProcessFileRemovedEvent(const FileEvent& fileEvent)
+	{
+		std::filesystem::path rootPathName = absRootPath.filename();
+		if (fileEvent.oldPath.has_extension())
+		{
+			directoryTree->RemoveFile(rootPathName / fileEvent.oldPath);
+		}
+		else
+		{
+			directoryTree->RemoveDirectory(rootPathName / fileEvent.oldPath);
+		}
+	}
+	void ContentBrowser::ProcessFileMovedEvent(const FileEvent& fileEvent)
 	{
 		// TODO
 	}
-	void ContentBrowser::ProcessFileMovedEvent(const FileEvent& fileEvent) const
+	void ContentBrowser::ProcessFileModifiedEvent(const FileEvent& fileEvent)
 	{
 		// TODO
 	}
-	void ContentBrowser::ProcessFileModifiedEvent(const FileEvent& fileEvent) const
-	{
-		// TODO
-	}
-	void ContentBrowser::ProcessFileRenamedEvent(const FileEvent& fileEvent) const
+	void ContentBrowser::ProcessFileRenamedEvent(const FileEvent& fileEvent)
 	{
 		// TODO
 	}

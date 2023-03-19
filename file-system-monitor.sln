@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "file-watcher", "file-watche
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ini-parser-lib", "ini-parser-lib\ini-parser-lib.vcxproj", "{49E9E354-24DA-436A-96CA-FD20F37826F7}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tests", "tests\tests.vcxproj", "{E6A49E11-7964-4EF0-8960-2FBDE8087BE6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -31,6 +33,14 @@ Global
 		{49E9E354-24DA-436A-96CA-FD20F37826F7}.Release|x64.Build.0 = Release|x64
 		{49E9E354-24DA-436A-96CA-FD20F37826F7}.Release|x86.ActiveCfg = Release|Win32
 		{49E9E354-24DA-436A-96CA-FD20F37826F7}.Release|x86.Build.0 = Release|Win32
+		{E6A49E11-7964-4EF0-8960-2FBDE8087BE6}.Debug|x64.ActiveCfg = Debug|x64
+		{E6A49E11-7964-4EF0-8960-2FBDE8087BE6}.Debug|x64.Build.0 = Debug|x64
+		{E6A49E11-7964-4EF0-8960-2FBDE8087BE6}.Debug|x86.ActiveCfg = Debug|Win32
+		{E6A49E11-7964-4EF0-8960-2FBDE8087BE6}.Debug|x86.Build.0 = Debug|Win32
+		{E6A49E11-7964-4EF0-8960-2FBDE8087BE6}.Release|x64.ActiveCfg = Release|x64
+		{E6A49E11-7964-4EF0-8960-2FBDE8087BE6}.Release|x64.Build.0 = Release|x64
+		{E6A49E11-7964-4EF0-8960-2FBDE8087BE6}.Release|x86.ActiveCfg = Release|Win32
+		{E6A49E11-7964-4EF0-8960-2FBDE8087BE6}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

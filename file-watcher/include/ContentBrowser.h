@@ -12,7 +12,7 @@
 
 namespace fs
 {
-	class ContentBrowser
+	class ContentBrowser : public DirectoryTreeEventListener
 	{
 	public:
 
@@ -27,17 +27,24 @@ namespace fs
 
 	private:
 
+		void OnDirectoryAdded(std::shared_ptr<Directory> dir) override;
+		void OnDirectoryRemoved(std::shared_ptr<Directory> dir) override;
+
+		void OnFileAdded(std::shared_ptr<File> file) override;
+		void OnFileRemoved(std::shared_ptr<File> file) override;
+
 		void InitializeContentBrowser();
 
-		void ProcessFileEvent(const FileEvent& fileEvent) const;
-		void ProcessFileAddedEvent(const FileEvent& fileEvent) const;
-		void ProcessFileRemovedEvent(const FileEvent& fileEvent) const;
-		void ProcessFileMovedEvent(const FileEvent& fileEvent) const;
-		void ProcessFileModifiedEvent(const FileEvent& fileEvent) const;
-		void ProcessFileRenamedEvent(const FileEvent& fileEvent) const;
+		void ProcessFileEvent(const FileEvent& fileEvent);
+		void ProcessFileAddedEvent(const FileEvent& fileEvent);
+		void ProcessFileRemovedEvent(const FileEvent& fileEvent);
+		void ProcessFileMovedEvent(const FileEvent& fileEvent);
+		void ProcessFileModifiedEvent(const FileEvent& fileEvent);
+		void ProcessFileRenamedEvent(const FileEvent& fileEvent);
 
-		std::filesystem::path currentPath;
-		std::filesystem::path rootPath;
+		std::filesystem::path relCurrentPath;
+		std::filesystem::path absRootPath;
+		std::filesystem::path rootDirAbsParentPath;
 
 		std::unique_ptr<ContentBrowserDrawer> contentBrowserDrawer;
 		std::unique_ptr<DirectoryTree> directoryTree;

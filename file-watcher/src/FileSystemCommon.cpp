@@ -122,10 +122,25 @@ namespace fs
 	{
 		return dirEntryPath;
 	}
+	void DirectoryEntry::UpdatePath()
+	{
+		std::filesystem::path newPath = dirEntryPath.filename();
+		if (!parentDir.expired())
+		{
+			newPath = parentDir.lock()->GetPath() / newPath;
+		}
+		dirEntryPath = newPath;
+	}
 
 	void DirectoryEntry::SetParentDirectory(std::shared_ptr<Directory> parentDir)
 	{
 		this->parentDir = parentDir;
+		UpdatePath();
+	}
+	void DirectoryEntry::ClearParentDirectory()
+	{
+		parentDir.reset();
+		UpdatePath();
 	}
 
 	bool DirectoryEntry::Exists() const
@@ -174,6 +189,19 @@ namespace fs
 		return GetDirectoryName();
 	}
 
+	void Directory::UpdatePath()
+	{
+		DirectoryEntry::UpdatePath();
+		for (auto& file : files)
+		{
+			file->UpdatePath();
+		}
+		for (auto& dir : directories)
+		{
+			dir->UpdatePath();
+		}
+	}
+
 	void Directory::AddDirectoryEntry(std::shared_ptr<DirectoryEntry> entry)
 	{
 		if (entry->GetDirectoryEntryType() == DirectoryEntryType::DIRECTORY)
@@ -202,29 +230,87 @@ namespace fs
 		InsertFileSorted(file);
 	}
 
+	void Directory::DeleteDirectoryEntry(std::shared_ptr<DirectoryEntry> entry)
+	{
+		if (entry->GetDirectoryEntryType() == DirectoryEntryType::DIRECTORY)
+		{
+			DeleteDirectory(std::static_pointer_cast<Directory>(entry));
+		}
+		else if (entry->GetDirectoryEntryType() == DirectoryEntryType::FILE)
+		{
+			DeleteFile(std::static_pointer_cast<File>(entry));
+		}
+		else // UNDEFINED
+		{
+			assert(false && "Undefined directory entry type");
+		}
+	}
+	void Directory::DeleteDirectory(const std::string& dirName)
+	{
+		auto nameSearch = [&](const std::shared_ptr<Directory>& dir) {
+			return dirName == dir->GetDirectoryName();
+		};
+
+		auto result = std::find_if(std::begin(directories), std::end(directories), nameSearch);
+		if (result == std::end(directories))
+			return;
+
+		(*result)->ClearParentDirectory();
+
+		directories.erase(result);
+	}
+	void Directory::DeleteDirectory(std::shared_ptr<Directory> dir)
+	{
+		directories.erase(
+			std::remove(directories.begin(), directories.end(), dir),
+			directories.end());
+
+		dir->ClearParentDirectory();
+	}
+	void Directory::DeleteFile(const std::string& fileName)
+	{
+		auto nameSearch = [&](const std::shared_ptr<File>& file) {
+			return fileName == file->GetFullFileName();
+		};
+
+		auto result = std::find_if(std::begin(files), std::end(files), nameSearch);
+		if (result == std::end(files))
+			return;
+
+		(*result)->ClearParentDirectory();
+
+		files.erase(result);
+	}
+	void Directory::DeleteFile(std::shared_ptr<File> file)
+	{
+		files.erase(
+			std::remove(files.begin(), files.end(), file),
+			files.end());
+
+		file->ClearParentDirectory();
+	}
+
 	std::shared_ptr<Directory> Directory::GetDirectory(const std::string& dirName)
 	{
-		auto nameSearch = [&](const std::shared_ptr<DirectoryEntry>& entry) {
-			std::shared_ptr<Directory> directory = std::static_pointer_cast<Directory>(entry);
-			return dirName == directory->GetDirectoryName();
+		auto nameSearch = [&](const std::shared_ptr<Directory>& dir) {
+			return dirName == dir->GetDirectoryName();
 		};
-		auto result = std::find_if(directories.begin(), directories.end(), nameSearch);
+		auto result = std::find_if(std::begin(directories), std::end(directories), nameSearch);
 
 		if (result == std::end(directories))
 			return std::shared_ptr<Directory>{};
-		return std::static_pointer_cast<Directory>(*result);
+		return *result;
 	}
 	std::shared_ptr<File> Directory::GetFile(const std::string& fileName)
 	{
-		auto nameSearch = [&](const std::shared_ptr<DirectoryEntry>& entry) {
-			std::shared_ptr<File> file = std::static_pointer_cast<File>(entry);
+		auto nameSearch = [&](const std::shared_ptr<File>& file) {
 			return fileName == file->GetFullFileName();
 		};
-		auto result = std::find_if(files.begin(), files.end(), nameSearch);
-
+		auto result = std::find_if(std::begin(files), std::end(files), nameSearch);
+		
 		if (result == std::end(files))
 			return std::shared_ptr<File>{};
-		return std::static_pointer_cast<File>(*result);
+		return *result;
 	}
 
 	bool Directory::DirectoryExists(const std::string& dirName)
@@ -232,7 +318,7 @@ namespace fs
 		auto nameSearch = [&](std::shared_ptr<Directory> directory) {
 			return dirName == directory->GetDirectoryName();
 		};
-		auto result = std::find_if(directories.begin(), directories.end(), nameSearch);
+		auto result = std::find_if(std::begin(directories), std::end(directories), nameSearch);
 
 		if (result == std::end(directories))
 			return false;
@@ -243,7 +329,7 @@ namespace fs
 		auto nameSearch = [&](std::shared_ptr<File> file) {
 			return fileName == file->GetFullFileName();
 		};
-		auto result = std::find_if(files.begin(), files.end(), nameSearch);
+		auto result = std::find_if(std::begin(files), std::end(files), nameSearch);
 
 		if (result == std::end(files))
 			return false;
@@ -255,13 +341,59 @@ namespace fs
 		return dirEntryPath.filename().string();
 	}
 
-	const Directory::Directories& Directory::GetDirectories() const
+	std::vector<std::shared_ptr<Directory>> Directory::GetDirectories() const
 	{
-		return directories;
+		std::vector<std::shared_ptr<Directory>> dirs;
+		dirs.insert(dirs.end(), std::begin(directories), std::end(directories));
+		return dirs;
 	}
-	const Directory::Files& Directory::GetFiles() const
+	std::vector<std::shared_ptr<Directory>> Directory::GetDirectoriesRecursive() const
 	{
+		std::vector<std::shared_ptr<Directory>> result;
+		for (const auto& dir : directories)
+		{
+			result.push_back(dir);
+			auto dirEntries = dir->GetDirectoriesRecursive();
+			result.insert(result.end(), std::begin(dirEntries), std::end(dirEntries));
+		}
+		return result;
+	}
+	std::vector<std::shared_ptr<File>> Directory::GetFiles() const
+	{
+		std::vector<std::shared_ptr<File>> files;
+		files.insert(files.end(), std::begin(this->files), std::end(this->files));
 		return files;
+	}
+	std::vector<std::shared_ptr<File>> Directory::GetFilesRecursive() const
+	{
+		std::vector<std::shared_ptr<File>> result;
+		result.insert(result.end(), std::begin(files), std::end(files));
+		for (const auto& dir : directories)
+		{
+			auto dirEntries = dir->GetFilesRecursive();
+			result.insert(result.end(), std::begin(dirEntries), std::end(dirEntries));
+		}
+		return result;
+	}
+
+	std::vector<std::shared_ptr<DirectoryEntry>> Directory::GetDirEntries() const
+	{
+		std::vector<std::shared_ptr<DirectoryEntry>> entries;
+		entries.insert(entries.end(), std::begin(files), std::end(files));
+		entries.insert(entries.end(), std::begin(directories), std::end(directories));
+		return entries;
+	}
+	std::vector<std::shared_ptr<DirectoryEntry>> Directory::GetDirEntriesRecursive() const
+	{
+		std::vector<std::shared_ptr<DirectoryEntry>> result;
+		result.insert(result.end(), std::begin(files), std::end(files));
+		for (const auto& dir : directories)
+		{
+			result.push_back(dir);
+			auto dirEntries = dir->GetDirEntriesRecursive();
+			result.insert(result.end(), std::begin(dirEntries), std::end(dirEntries));
+		}
+		return result;
 	}
 
 	DirEntrySortType Directory::GetSortingType() const
@@ -335,6 +467,11 @@ namespace fs
 	std::string File::GetUniqueName() const
 	{
 		return GetFullFileName();
+	}
+
+	void File::UpdatePath()
+	{
+		DirectoryEntry::UpdatePath();
 	}
 
 	std::string File::GetFullFileName() const

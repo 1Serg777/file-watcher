@@ -4,7 +4,7 @@
 
 namespace fs
 {
-	class ContentBrowserDrawer : public IDirectoryTreeProcessor
+	class ContentBrowserDrawer : public DirectoryTreeProcessor
 	{
 	public:
 

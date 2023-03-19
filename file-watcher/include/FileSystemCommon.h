@@ -1,6 +1,7 @@
 #pragma once
 
 #include <filesystem>
+#include <functional>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -88,8 +89,10 @@ namespace fs
 		virtual std::string GetUniqueName() const = 0;
 
 		const std::filesystem::path& GetPath() const;
+		virtual void UpdatePath();
 
 		void SetParentDirectory(std::shared_ptr<Directory> parentDir);
+		void ClearParentDirectory();
 
 		bool Exists() const;
 
@@ -101,8 +104,6 @@ namespace fs
 	protected:
 
 		std::filesystem::path dirEntryPath;
-
-	private:
 
 		std::filesystem::file_time_type lastWriteTime{};
 
@@ -129,9 +130,17 @@ namespace fs
 		DirectoryEntryType GetDirectoryEntryType() const override;
 		std::string GetUniqueName() const override;
 
+		void UpdatePath() override;
+
 		void AddDirectoryEntry(std::shared_ptr<DirectoryEntry> entry);
 		void AddDirectory(std::shared_ptr<Directory> dir);
 		void AddFile(std::shared_ptr<File> file);
+
+		void DeleteDirectoryEntry(std::shared_ptr<DirectoryEntry> entry);
+		void DeleteDirectory(const std::string& dirName);
+		void DeleteDirectory(std::shared_ptr<Directory> dir);
+		void DeleteFile(const std::string& fileName);
+		void DeleteFile(std::shared_ptr<File> file);
 
 		// Returns a default constructed 'shared_ptr<Directory>' object
 		// if the directory being searched for doesn't exist
@@ -145,8 +154,13 @@ namespace fs
 
 		std::string GetDirectoryName() const;
 
-		const Directories& GetDirectories() const;
-		const Files& GetFiles() const;
+		std::vector<std::shared_ptr<Directory>> GetDirectories() const;
+		std::vector<std::shared_ptr<Directory>> GetDirectoriesRecursive() const;
+		std::vector<std::shared_ptr<File>> GetFiles() const;
+		std::vector<std::shared_ptr<File>> GetFilesRecursive() const;
+
+		std::vector<std::shared_ptr<DirectoryEntry>> GetDirEntries() const;
+		std::vector<std::shared_ptr<DirectoryEntry>> GetDirEntriesRecursive() const;
 
 		DirEntrySortType GetSortingType() const;
 		void SetSortingType(DirEntrySortType sortType);
@@ -181,6 +195,8 @@ namespace fs
 		DirectoryEntryType GetDirectoryEntryType() const override;
 		std::string GetUniqueName() const override;
 
+		void UpdatePath() override;
+
 		std::string GetFullFileName() const;
 		std::string GetFileName() const;
 		std::string GetFileExtension() const;
@@ -189,7 +205,6 @@ namespace fs
 
 	private:
 
-		std::string fileName;
 		AssetType assetType;
 	};
 
