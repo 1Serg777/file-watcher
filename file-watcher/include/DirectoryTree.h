@@ -42,8 +42,12 @@ namespace fs
 
 		void AddNewFile(const std::filesystem::path& filePath);
 		void AddNewDirectory(const std::filesystem::path& dirPath);
+
 		void RemoveFile(const std::filesystem::path& filePath);
 		void RemoveDirectory(const std::filesystem::path& dirPath);
+
+		void MoveFile(const std::filesystem::path& oldPath, const std::filesystem::path& newPath);
+		void MoveDirectory(const std::filesystem::path& oldPath, const std::filesystem::path& newPath);
 
 		// This is dangerous because we can't know what this object is going to do
 		// with our root directory. It can store it, traverse its subderectoires and/or store them as well.

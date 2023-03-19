@@ -4,6 +4,7 @@
 #include <chrono>
 
 #undef DeleteFile
+#undef MoveFile
 #undef RemoveDirectory
 
 using namespace std::chrono;
@@ -115,8 +116,7 @@ namespace fs
 			break;
 			case FileEventType::MOVED:
 			{
-				// TODO
-				// ProcessFileMovedEvent(fileEvent);
+				ProcessFileMovedEvent(fileEvent);
 			}
 			break;
 			case FileEventType::MODIFIED:
@@ -164,7 +164,15 @@ namespace fs
 	}
 	void ContentBrowser::ProcessFileMovedEvent(const FileEvent& fileEvent)
 	{
-		// TODO
+		std::filesystem::path rootPathName = absRootPath.filename();
+		if (fileEvent.oldPath.has_extension() && fileEvent.newPath.has_extension()) // check both, just in case
+		{
+			directoryTree->MoveFile(rootPathName / fileEvent.oldPath, rootPathName / fileEvent.newPath);
+		}
+		else
+		{
+			directoryTree->MoveDirectory(rootPathName / fileEvent.oldPath, rootPathName / fileEvent.newPath);
+		}
 	}
 	void ContentBrowser::ProcessFileModifiedEvent(const FileEvent& fileEvent)
 	{

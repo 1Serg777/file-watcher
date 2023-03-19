@@ -57,7 +57,7 @@ namespace fs
 			filePath,
 			DetectFileAssetType(filePath.extension().generic_string()));
 
-		AddFileToDirectory(parentDir, newFile);
+		Directory::AddFileToDirectory(parentDir, newFile);
 
 		NotifyFileAdded(newFile);
 	}
@@ -70,10 +70,11 @@ namespace fs
 
 		std::shared_ptr<Directory> newDir = BuildTree(dirPath);
 
-		AddDirectoryToDirectory(parentDir, newDir);
+		Directory::AddDirectoryToDirectory(parentDir, newDir);
 
 		NotifyDirectoryAdded(newDir);
 	}
+
 	void DirectoryTree::RemoveFile(const std::filesystem::path& filePath)
 	{
 		std::filesystem::path parentDirRelPath = filePath.parent_path();
@@ -85,6 +86,15 @@ namespace fs
 			parentDir->GetFile(filePath.filename().generic_string());
 		if (!fileToDelete)
 			return;
+
+		// This place is really important because it'll have direct impact on how
+		// we're going to create tasks and notify the 'TaskManager' about them.
+		// So, Here's the thing.
+		// If we want listeners to know what entities we're deleting and
+		// the information about them should be 'old', (before changes after deleting them will take place)
+		// then we have to first notify the entities and then actually delete them
+		// If we want the opposite result, when we'd like to be notified about these entities
+		// with new information (after the delete operation), then change the order of operations.
 
 		NotifyFileRemoved(fileToDelete);
 
@@ -102,6 +112,15 @@ namespace fs
 		if (!dirToDelete)
 			return;
 
+		// This place is really important because it'll have direct impact on how
+		// we're going to create tasks and notify the 'TaskManager' about them.
+		// So, Here's the thing.
+		// If we want listeners to know what entities we're deleting and
+		// the information about them should be 'old', (before changes after deleting them will take place)
+		// then we have to first notify the entities and then actually delete them
+		// If we want the opposite result, when we'd like to be notified about these entities
+		// with new information (after the delete operation), then change the order of operations.
+
 		for (auto& dirEntity : dirToDelete->GetDirEntriesRecursive())
 		{
 			if (dirEntity->IsDirectory())
@@ -116,6 +135,28 @@ namespace fs
 		}
 
 		parentDir->DeleteDirectory(dirToDelete);
+	}
+
+	void DirectoryTree::MoveFile(const std::filesystem::path& oldPath, const std::filesystem::path& newPath)
+	{
+		std::filesystem::path oldPathParentPath = oldPath.parent_path();
+		std::filesystem::path newPathParentPath = newPath.parent_path();
+
+		std::shared_ptr<Directory> oldPathParentDir = GetDirectory(oldPathParentPath);
+		std::shared_ptr<Directory> newPathParentDir = GetDirectory(newPathParentPath);
+
+		assert(oldPathParentDir && newPathParentDir && "Can't remove a file from a directory that doesn't exist");
+
+		std::shared_ptr<File> fileToMove = oldPathParentDir->GetFile(oldPath.filename().generic_string());
+		
+		assert(fileToMove && "Cannot move a file that doesn't exist");
+
+		oldPathParentDir->DeleteFile(fileToMove);
+		Directory::AddFileToDirectory(newPathParentDir, fileToMove);
+	}
+	void DirectoryTree::MoveDirectory(const std::filesystem::path& oldPath, const std::filesystem::path& newPath)
+	{
+
 	}
 
 	void DirectoryTree::ProcessDirectoryTree(DirectoryTreeProcessor* processor)
@@ -186,7 +227,7 @@ namespace fs
 
 				std::shared_ptr<File> newFile = std::make_shared<File>(parentDirPath / fileName, assetType);
 
-				AddFileToDirectory(parentDir, newFile);
+				Directory::AddFileToDirectory(parentDir, newFile);
 
 				NotifyFileAdded(newFile);
 			}
@@ -195,7 +236,7 @@ namespace fs
 				std::filesystem::path dirName = entry.path().filename();
 				std::shared_ptr<Directory> newDir = BuildTree(parentDirPath / dirName);
 
-				AddDirectoryToDirectory(parentDir, newDir);
+				Directory::AddDirectoryToDirectory(parentDir, newDir);
 
 				NotifyDirectoryAdded(newDir);
 			}

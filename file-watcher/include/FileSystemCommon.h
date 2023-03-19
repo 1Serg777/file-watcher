@@ -123,6 +123,10 @@ namespace fs
 		using Files = std::vector<std::shared_ptr<File>>;
 		using DirectoryEntries = std::vector<std::shared_ptr<DirectoryEntry>>;
 
+		static void AddEntryToDirectory(std::shared_ptr<Directory> dir, std::shared_ptr<DirectoryEntry> entry);
+		static void AddDirectoryToDirectory(std::shared_ptr<Directory> where, std::shared_ptr<Directory> what);
+		static void AddFileToDirectory(std::shared_ptr<Directory> where, std::shared_ptr<File> file);
+
 		Directory(const std::filesystem::path& dirPath);
 
 		bool IsFile() const override;
@@ -275,10 +279,6 @@ namespace fs
 	};
 
 	// Helper methods
-
-	void AddEntryToDirectory(std::shared_ptr<Directory> dir, std::shared_ptr<DirectoryEntry> entry);
-	void AddDirectoryToDirectory(std::shared_ptr<Directory> where, std::shared_ptr<Directory> what);
-	void AddFileToDirectory(std::shared_ptr<Directory> where, std::shared_ptr<File> file);
 
 	AssetType DetectFileAssetType(std::string_view file_ext);
 }

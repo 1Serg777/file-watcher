@@ -166,6 +166,22 @@ namespace fs
 
 	// Directory
 
+	void Directory::AddEntryToDirectory(std::shared_ptr<Directory> where, std::shared_ptr<DirectoryEntry> what)
+	{
+		where->AddDirectoryEntry(what);
+		what->SetParentDirectory(where);
+	}
+	void Directory::AddDirectoryToDirectory(std::shared_ptr<Directory> where, std::shared_ptr<Directory> what)
+	{
+		where->AddDirectory(what);
+		what->SetParentDirectory(where);
+	}
+	void Directory::AddFileToDirectory(std::shared_ptr<Directory> where, std::shared_ptr<File> what)
+	{
+		where->AddFile(what);
+		what->SetParentDirectory(where);
+	}
+
 	Directory::Directory(const std::filesystem::path& dirPath)
 		: DirectoryEntry(dirPath)
 	{
@@ -685,22 +701,6 @@ namespace fs
 	}
 
 	// Helper methods
-
-	void AddEntryToDirectory(std::shared_ptr<Directory> where, std::shared_ptr<DirectoryEntry> what)
-	{
-		where->AddDirectoryEntry(what);
-		what->SetParentDirectory(where);
-	}
-	void AddDirectoryToDirectory(std::shared_ptr<Directory> where, std::shared_ptr<Directory> what)
-	{
-		where->AddDirectory(what);
-		what->SetParentDirectory(where);
-	}
-	void AddFileToDirectory(std::shared_ptr<Directory> where, std::shared_ptr<File> file)
-	{
-		where->AddFile(file);
-		file->SetParentDirectory(where);
-	}
 
 	AssetType DetectFileAssetType(std::string_view file_ext)
 	{
