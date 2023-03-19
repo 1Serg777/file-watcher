@@ -127,8 +127,7 @@ namespace fs
 			break;
 			case FileEventType::RENAMED:
 			{
-				// TODO
-				// ProcessFileRenamedEvent(fileEvent);
+				ProcessFileRenamedEvent(fileEvent);
 			}
 			break;
 			default:
@@ -180,6 +179,14 @@ namespace fs
 	}
 	void ContentBrowser::ProcessFileRenamedEvent(const FileEvent& fileEvent)
 	{
-		// TODO
+		std::filesystem::path rootPathName = absRootPath.filename();
+		if (fileEvent.oldPath.has_extension() && fileEvent.newPath.has_extension()) // check both, just in case
+		{
+			directoryTree->RenameFile(rootPathName / fileEvent.oldPath, rootPathName / fileEvent.newPath);
+		}
+		else
+		{
+			directoryTree->RenameDirectory(rootPathName / fileEvent.oldPath, rootPathName / fileEvent.newPath);
+		}
 	}
 }

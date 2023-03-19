@@ -88,6 +88,8 @@ namespace fs
 		virtual DirectoryEntryType GetDirectoryEntryType() const = 0;
 		virtual std::string GetUniqueName() const = 0;
 
+		void Rename(const std::string& newName);
+
 		const std::filesystem::path& GetPath() const;
 		virtual void UpdatePath();
 

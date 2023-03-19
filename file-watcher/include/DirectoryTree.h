@@ -73,9 +73,9 @@ namespace fs
 		std::shared_ptr<Directory> BuildTree(const std::filesystem::path& dirPath);
 
 		// Change 'old path' to 'new path' links
-		void ResolveMovedDirectoryMapLinks(
-			const std::filesystem::path& whereDirMoved,
-			const std::filesystem::path& relPathToMovedDir,
+		void ResolveDirectoryMapLinks(
+			const std::filesystem::path& newDirPath,
+			const std::filesystem::path& relPathToDir,
 			std::shared_ptr<Directory> relPathDir);
 
 		std::unordered_map<

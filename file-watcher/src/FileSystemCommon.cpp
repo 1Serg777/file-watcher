@@ -118,6 +118,12 @@ namespace fs
 	{
 	}
 
+	void DirectoryEntry::Rename(const std::string& newName)
+	{
+		dirEntryPath.replace_filename(newName);
+		UpdatePath();
+	}
+
 	const std::filesystem::path& DirectoryEntry::GetPath() const
 	{
 		return dirEntryPath;

@@ -174,7 +174,8 @@ namespace fs
 
 		// Yeah, naming... Hope I can find better wording here...
 		std::filesystem::path relPathToMovedDir = oldPath.filename();
-		ResolveMovedDirectoryMapLinks(newPathParentPath, relPathToMovedDir, directoryToMove);
+		// ResolveMovedDirectoryMapLinks(newPathParentPath, relPathToMovedDir, directoryToMove);
+		ResolveDirectoryMapLinks(newPath, std::filesystem::path{}, directoryToMove);
 
 		oldPathParentDir->DeleteDirectory(directoryToMove);
 		Directory::AddDirectoryToDirectory(newPathParentDir, directoryToMove);
@@ -182,11 +183,37 @@ namespace fs
 
 	void DirectoryTree::RenameFile(const std::filesystem::path& oldPath, const std::filesystem::path& newPath)
 	{
-		// TODO
+		std::filesystem::path oldPathParentPath = oldPath.parent_path();
+		std::filesystem::path newPathParentPath = newPath.parent_path();
+
+		std::shared_ptr<Directory> oldPathParentDir = GetDirectory(oldPathParentPath);
+		std::shared_ptr<Directory> newPathParentDir = GetDirectory(newPathParentPath);
+
+		assert(oldPathParentDir && newPathParentDir && "The old or new directory doesn't exist");
+
+		std::shared_ptr<File> fileToRename = oldPathParentDir->GetFile(oldPath.filename().generic_string());
+
+		assert(fileToRename && "Can't rename a file that doesn't exist");
+
+		fileToRename->Rename(newPath.filename().generic_string());
 	}
 	void DirectoryTree::RenameDirectory(const std::filesystem::path& oldPath, const std::filesystem::path& newPath)
 	{
-		// TODO
+		std::filesystem::path oldPathParentPath = oldPath.parent_path();
+		std::filesystem::path newPathParentPath = newPath.parent_path();
+
+		std::shared_ptr<Directory> oldPathParentDir = GetDirectory(oldPathParentPath);
+		std::shared_ptr<Directory> newPathParentDir = GetDirectory(newPathParentPath);
+
+		assert(oldPathParentDir && newPathParentDir && "The old or new directory doesn't exist");
+
+		std::shared_ptr<Directory> dirToRename = oldPathParentDir->GetDirectory(oldPath.filename().generic_string());
+
+		assert(dirToRename && "Can't rename a directory that doesn't exist");
+
+		ResolveDirectoryMapLinks(newPath, std::filesystem::path{}, dirToRename);
+
+		dirToRename->Rename(newPath.filename().generic_string());
 	}
 
 	void DirectoryTree::ProcessDirectoryTree(DirectoryTreeProcessor* processor)
@@ -275,12 +302,14 @@ namespace fs
 		return parentDir;
 	}
 
-	void DirectoryTree::ResolveMovedDirectoryMapLinks(
-		const std::filesystem::path& whereDirMoved,
-		const std::filesystem::path& relPathToMovedDir,
+	void DirectoryTree::ResolveDirectoryMapLinks(
+		const std::filesystem::path& newDirPath,
+		const std::filesystem::path& relPathToDir,
 		std::shared_ptr<Directory> relPathDir)
 	{
-		std::filesystem::path newKeyPath = whereDirMoved / relPathToMovedDir;
+		std::filesystem::path newKeyPath = newDirPath;
+		if (!relPathToDir.empty())
+			newKeyPath = newDirPath / relPathToDir;
 
 		auto search = directories.find(relPathDir->GetPath());
 		assert(search != directories.end() && "Can't find the directory with the old key");
@@ -290,31 +319,11 @@ namespace fs
 
 		for (auto& dir : relPathDir->GetDirectories())
 		{
-			/*
-			std::filesystem::path dirName = dir->GetPath().filename();
-			std::filesystem::path newKeyPath = whereDirMoved / relPathToMovedDir / dirName;
-
-			// Get rid of the old link
-
-			auto search = directories.find(dir->GetPath());
-			assert(search != directories.end() && "Can't find the directory with the old key");
-			std::shared_ptr<Directory> dirToAssignNewKeyTo = search->second;
-			directories.erase(search);
-
-			// And set the new one
-
-			directories.insert({ newKeyPath, dirToAssignNewKeyTo });
-
-			// Make a recursive call
-
-			ResolveMovedDirectoryMapLinks(whereDirMoved, relPathToMovedDir / dirName, dirToAssignNewKeyTo);
-			*/
-
 			auto search = directories.find(dir->GetPath());
 			assert(search != directories.end() && "Can't find the directory currently being iterated over in the map");
 			std::shared_ptr<Directory> newRelPathDir = search->second;
 
-			ResolveMovedDirectoryMapLinks(whereDirMoved, relPathToMovedDir / dir->GetPath().filename(), newRelPathDir);
+			ResolveDirectoryMapLinks(newDirPath, relPathToDir / dir->GetPath().filename(), newRelPathDir);
 		}
 	}
 }
