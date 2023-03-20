@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <chrono>
+#include <iostream>
 
 #undef DeleteFile
 #undef MoveFile
@@ -11,6 +12,59 @@ using namespace std::chrono;
 
 namespace fs
 {
+	constexpr std::string_view png_ext{ ".png" };
+	constexpr std::string_view jpg_ext{ ".jpg" };
+	constexpr std::string_view jpeg_ext{ ".jpeg" };
+	constexpr std::string_view hdr_ext{ ".hdr" };
+
+	constexpr std::string_view glb_ext{ ".glb" };
+	constexpr std::string_view gltf_ext{ ".gltf" };
+	constexpr std::string_view mtl_ext{ ".mtl" };
+	constexpr std::string_view obj_ext{ ".obj" };
+	constexpr std::string_view stl_ext{ ".stl" };
+
+	constexpr std::string_view fs_ext{ ".fs" };
+	constexpr std::string_view frag_ext{ ".frag" };
+	constexpr std::string_view gs_ext{ ".gs" };
+	constexpr std::string_view geom_ext{ ".geom" };
+	constexpr std::string_view vs_ext{ ".vs" };
+	constexpr std::string_view vert_ext{ ".vert" };
+
+	constexpr std::string_view shader_ext{ ".shader" };
+
+	constexpr std::string_view txt_doc_ext{ ".txt" };
+
+	// Asset Type enumeration
+
+	std::unordered_map<std::string_view, AssetType> file_exts_to_asset_type_map
+	{
+		{ png_ext, AssetType::TEXTURE },
+		{ jpg_ext, AssetType::TEXTURE },
+		{ jpeg_ext, AssetType::TEXTURE },
+		{ hdr_ext, AssetType::TEXTURE },
+
+		{ glb_ext, AssetType::MODEL },
+		{ gltf_ext, AssetType::MODEL },
+		{ mtl_ext, AssetType::MODEL },
+		{ obj_ext, AssetType::MODEL },
+		{ stl_ext, AssetType::MODEL },
+
+		/*
+		{ fs_ext, AssetType::SHADER },
+		{ frag_ext, AssetType::SHADER },
+		{ gs_ext, AssetType::SHADER },
+		{ geom_ext, AssetType::SHADER },
+		{ vs_ext, AssetType::SHADER },
+		{ vert_ext, AssetType::SHADER },
+		*/
+
+		{ shader_ext, AssetType::SHADER },
+
+		{ txt_doc_ext, AssetType::TEXT_DOC }
+	};
+
+	// Content Browser
+
 	ContentBrowser::ContentBrowser()
 	{
 		InitializeContentBrowser();
@@ -25,6 +79,8 @@ namespace fs
 		// TODO
 		// Process all pending events in FileSystemWatcher?
 
+		ProcessKeyboardEvents();
+
 		if (!fileWatcher->HasFileEvents())
 		{
 			anyChanges = false;
@@ -35,7 +91,7 @@ namespace fs
 		{
 			FileEvent fileEvent = fileWatcher->RetrieveFileEvent();
 			ProcessFileEvent(fileEvent);
-			PrintFileEvent(fileEvent);
+			// PrintFileEvent(fileEvent);
 		}
 
 		anyChanges = true;
@@ -92,6 +148,15 @@ namespace fs
 		// REMOVE ASSETS?
 	}
 
+	void ContentBrowser::OnFileModified(std::shared_ptr<File> file)
+	{
+		// PROCESS MODIFIED FILES?
+	}
+	void ContentBrowser::OnDirectoryModified(std::shared_ptr<Directory> dir)
+	{
+		// PROCESS MODIFIED DIRECTORIES?
+	}
+
 	void ContentBrowser::InitializeContentBrowser()
 	{
 		contentBrowserDrawer = std::make_unique<ContentBrowserDrawer>();
@@ -121,8 +186,7 @@ namespace fs
 			break;
 			case FileEventType::MODIFIED:
 			{
-				// TODO
-				// ProcessFileModifiedEvent(fileEvent);
+				ProcessFileModifiedEvent(fileEvent);
 			}
 			break;
 			case FileEventType::RENAMED:
@@ -175,7 +239,15 @@ namespace fs
 	}
 	void ContentBrowser::ProcessFileModifiedEvent(const FileEvent& fileEvent)
 	{
-		// TODO
+		std::filesystem::path rootPathName = absRootPath.filename();
+		if (fileEvent.oldPath.has_extension())
+		{
+			directoryTree->ProcessModifiedFile(rootPathName / fileEvent.oldPath);
+		}
+		else
+		{
+			directoryTree->ProcessModifiedDirectory(rootPathName / fileEvent.oldPath);
+		}
 	}
 	void ContentBrowser::ProcessFileRenamedEvent(const FileEvent& fileEvent)
 	{
@@ -188,5 +260,22 @@ namespace fs
 		{
 			directoryTree->RenameDirectory(rootPathName / fileEvent.oldPath, rootPathName / fileEvent.newPath);
 		}
+	}
+
+	void ContentBrowser::ProcessKeyboardEvents()
+	{
+		// TODO
+	}
+
+	// Helper methods
+
+	AssetType DetectFileAssetType(std::string_view file_ext)
+	{
+		auto find = file_exts_to_asset_type_map.find(file_ext);
+		if (find != file_exts_to_asset_type_map.end())
+		{
+			return find->second;
+		}
+		return AssetType::UNDEFINED;
 	}
 }

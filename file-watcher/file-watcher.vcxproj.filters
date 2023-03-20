@@ -13,27 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Header Files\Watcher">
-      <UniqueIdentifier>{292e0a0a-59b1-4b79-a556-3222c0284254}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Watcher">
-      <UniqueIdentifier>{f30b84d5-0af9-4a44-a373-f58993e5d213}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Util">
-      <UniqueIdentifier>{09ddd880-b27e-4d23-8071-8b0cfedeb11e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Util">
-      <UniqueIdentifier>{773adf31-3f83-44c1-8b5d-e4b654626f83}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\FileSystemCommon.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\DirectoryTree.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\ContentBrowser.cpp">
@@ -42,43 +24,13 @@
     <ClCompile Include="src\ContentBrowserDrawer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\WinFileWatcher.cpp">
-      <Filter>Source Files\Watcher</Filter>
-    </ClCompile>
-    <ClCompile Include="src\FileSystemWatcher.cpp">
-      <Filter>Source Files\Watcher</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Utility.cpp">
-      <Filter>Source Files\Util</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Timer.cpp">
-      <Filter>Source Files\Util</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\FileSystemCommon.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\DirectoryTree.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\ContentBrowser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\ContentBrowserDrawer.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\WinFileWatcher.h">
-      <Filter>Header Files\Watcher</Filter>
-    </ClInclude>
-    <ClInclude Include="include\FileSystemWatcher.h">
-      <Filter>Header Files\Watcher</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Timer.h">
-      <Filter>Header Files\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Utility.h">
-      <Filter>Header Files\Util</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

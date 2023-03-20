@@ -59,7 +59,9 @@ namespace fs
 		for (const auto& file : dir->GetFiles())
 		{
 			TabulateEntry(nextNestLevel);
-			std::cout << file->GetFullFileName() << "\n";
+			std::cout << file->GetFullFileName();
+			PrintModifiedSign(file);
+			std::cout << "\n";
 		}
 	}
 	void ContentBrowserDrawer::TabulateEntry(int nestLevel)
@@ -68,5 +70,11 @@ namespace fs
 		{
 			std::cout << "\t";
 		}
+	}
+
+	void ContentBrowserDrawer::PrintModifiedSign(std::shared_ptr<File> file)
+	{
+		if (file->Modified())
+			std::cout << "*";
 	}
 }

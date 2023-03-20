@@ -12,6 +12,15 @@
 
 namespace fs
 {
+	enum class AssetType
+	{
+		MODEL,
+		SHADER,
+		TEXTURE,
+		TEXT_DOC,
+		UNDEFINED
+	};
+
 	class ContentBrowser : public DirectoryTreeEventListener
 	{
 	public:
@@ -33,6 +42,9 @@ namespace fs
 		void OnFileAdded(std::shared_ptr<File> file) override;
 		void OnFileRemoved(std::shared_ptr<File> file) override;
 
+		void OnFileModified(std::shared_ptr<File> file) override;
+		void OnDirectoryModified(std::shared_ptr<Directory> dir) override;
+
 		void InitializeContentBrowser();
 
 		void ProcessFileEvent(const FileEvent& fileEvent);
@@ -41,6 +53,8 @@ namespace fs
 		void ProcessFileMovedEvent(const FileEvent& fileEvent);
 		void ProcessFileModifiedEvent(const FileEvent& fileEvent);
 		void ProcessFileRenamedEvent(const FileEvent& fileEvent);
+
+		void ProcessKeyboardEvents();
 
 		std::filesystem::path relCurrentPath;
 		std::filesystem::path absRootPath;
@@ -53,4 +67,8 @@ namespace fs
 
 		bool anyChanges{ false };
 	};
+
+	// Helper methods
+
+	AssetType DetectFileAssetType(std::string_view file_ext);
 }

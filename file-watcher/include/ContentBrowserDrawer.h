@@ -16,5 +16,7 @@ namespace fs
 
 		void DrawDirectory(std::shared_ptr<Directory> dir, int nestLevel);
 		void TabulateEntry(int nestLevel);
+
+		void PrintModifiedSign(std::shared_ptr<File> file);
 	};
 }
