@@ -130,22 +130,39 @@ namespace fs
 		}
 	}
 
+	void ContentBrowser::OnFileAdded(std::shared_ptr<File> file)
+	{
+		// ADD ASSETS?
+	}
 	void ContentBrowser::OnDirectoryAdded(std::shared_ptr<Directory> dir)
 	{
 		// TODO?
+	}
+	
+	void ContentBrowser::OnFileRemoved(std::shared_ptr<File> file)
+	{
+		// REMOVE ASSETS?
 	}
 	void ContentBrowser::OnDirectoryRemoved(std::shared_ptr<Directory> dir)
 	{
 		// TODO?
 	}
 
-	void ContentBrowser::OnFileAdded(std::shared_ptr<File> file)
+	void ContentBrowser::OnFilePathChanged(std::shared_ptr<File> file, const std::filesystem::path& oldPath)
 	{
-		// ADD ASSETS?
+		/*
+		std::cout << "[FILE]:\n";
+		std::cout << "(New path): " << file->GetPath() << "\n";
+		std::cout << "(Old path): " << oldPath << "\n";
+		*/
 	}
-	void ContentBrowser::OnFileRemoved(std::shared_ptr<File> file)
+	void ContentBrowser::OnDirectoryPathChanged(std::shared_ptr<Directory> dir, const std::filesystem::path& oldPath)
 	{
-		// REMOVE ASSETS?
+		/*
+		std::cout << "[DIRECTORY]:\n";
+		std::cout << "(New path): " << dir->GetPath() << "\n";
+		std::cout << "(Old path): " << oldPath << "\n";
+		*/
 	}
 
 	void ContentBrowser::OnFileModified(std::shared_ptr<File> file)
@@ -160,7 +177,9 @@ namespace fs
 	void ContentBrowser::InitializeContentBrowser()
 	{
 		contentBrowserDrawer = std::make_unique<ContentBrowserDrawer>();
+
 		directoryTree = std::make_unique<DirectoryTree>();
+		directoryTree->AddDirTreeEventListener(this);
 
 		fileWatcher = std::make_unique<FileSystemWatcher>();
 	}
